@@ -4,6 +4,14 @@ Faultline is a CPU-first seismic early-warning research platform built from the 
 
 > This is a research and portfolio project. It is not emergency guidance, a public alerting system, or a system that predicts earthquakes before signals arrive.
 
+## Live demo
+
+- Web app: [faultline-seismic.pearly-jay-2468.chatgpt.site](https://faultline-seismic.pearly-jay-2468.chatgpt.site)
+- API health: [faultline-api-m37v.onrender.com/health](https://faultline-api-m37v.onrender.com/health)
+- Source: [github.com/Kahn32/faultline](https://github.com/Kahn32/faultline)
+
+The API runs on a free CPU instance and may take roughly a minute to wake after inactivity. Production inference is memory-bounded with one concurrent request, chunked detector scanning, and a 180-sample forecast horizon.
+
 ## What it does
 
 ```text
