@@ -9,4 +9,12 @@ services:
       - key: CORS_ORIGINS
         value: "*"
       - key: MAX_CONCURRENT_INFERENCE
-        value: "2"
+        value: "1"
+      - key: TORCH_NUM_THREADS
+        value: "1"
+      - key: DETECTOR_SCAN_STRIDE
+        value: "100"
+      - key: DETECTOR_BATCH_SIZE
+        value: "8"
+      - key: FORECAST_STEPS
+        value: "180"

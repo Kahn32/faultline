@@ -34,7 +34,8 @@ def main() -> None:
     result = bundle.analyze(synthetic_event())
     if not result["p_wave"]["detected"]:
         raise RuntimeError("The bundled example did not clear the promoted detector threshold.")
-    if np.asarray(result["forecast"]).shape != (bundle.config.forecast_decoder_window, 3):
+    expected_forecast_steps = min(bundle.config.forecast_decoder_window, bundle.forecast_steps)
+    if np.asarray(result["forecast"]).shape != (expected_forecast_steps, 3):
         raise RuntimeError("The forecaster returned an unexpected output shape.")
     if result["estimates"] is None:
         raise RuntimeError("The event estimator was unexpectedly skipped.")
@@ -50,7 +51,7 @@ def main() -> None:
         "p_probability": result["p_wave"]["probability"],
         "magnitude": result["estimates"]["magnitude"],
         "distance_km": result["estimates"]["distance_km"],
-        "forecast_shape": [bundle.config.forecast_decoder_window, 3],
+        "forecast_shape": [expected_forecast_steps, 3],
         "latency_ms": result["latency_ms"],
     }
     print(json.dumps(summary, indent=2))

@@ -3,6 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from pathlib import Path
 import json
+import os
 import time
 import numpy as np
 import torch
@@ -12,12 +13,25 @@ from .models import GRUDetector, LSTMEstimator, SeismicSeq2Seq
 from .preprocessing import normalize_waveform
 
 
+# Small hosted CPUs benefit from bounded thread pools. More importantly, this
+# prevents native worker stacks from consuming a large fraction of a 512 MB
+# instance before inference starts.
+torch.set_num_threads(max(1, int(os.getenv("TORCH_NUM_THREADS", "1"))))
+try:
+    torch.set_num_interop_threads(1)
+except RuntimeError:
+    pass
+
+
 @dataclass
 class ModelBundle:
     artifact_dir: Path
     device: torch.device = torch.device("cpu")
 
     def __post_init__(self) -> None:
+        self.detector_scan_stride = max(1, int(os.getenv("DETECTOR_SCAN_STRIDE", "25")))
+        self.detector_batch_size = max(1, int(os.getenv("DETECTOR_BATCH_SIZE", "32")))
+        self.forecast_steps = max(1, int(os.getenv("FORECAST_STEPS", "900")))
         config_path = self.artifact_dir / "signal_config.json"
         self.config = SignalConfig.load(config_path) if config_path.exists() else SignalConfig()
         metadata_path = self.artifact_dir / "model_metadata.json"
@@ -49,15 +63,21 @@ class ModelBundle:
             c.forecast_encoder_window + c.forecast_decoder_window,
         )
         last_start = len(waveform) - required_after_detection
-        starts = list(range(0, last_start + 1, 25))
-        detector_windows = torch.tensor(
-            np.stack(
-                [normalize_waveform(waveform[s : s + c.detector_window]) for s in starts]
-            ),
-            dtype=torch.float32,
-            device=self.device,
-        )
-        probabilities = torch.softmax(self.detector(detector_windows), dim=1)[:, 1]
+        starts = list(range(0, last_start + 1, self.detector_scan_stride))
+        probability_chunks = []
+        for offset in range(0, len(starts), self.detector_batch_size):
+            batch_starts = starts[offset : offset + self.detector_batch_size]
+            detector_windows = torch.tensor(
+                np.stack(
+                    [normalize_waveform(waveform[s : s + c.detector_window]) for s in batch_starts]
+                ),
+                dtype=torch.float32,
+                device=self.device,
+            )
+            probability_chunks.append(
+                torch.softmax(self.detector(detector_windows), dim=1)[:, 1].cpu()
+            )
+        probabilities = torch.cat(probability_chunks)
         best_idx = int(probabilities.argmax().item())
         p_start = starts[best_idx]
         probability = float(probabilities[best_idx])
@@ -97,7 +117,10 @@ class ModelBundle:
             dtype=torch.float32,
             device=self.device,
         ).unsqueeze(0)
-        forecast, attention = self.forecaster.predict(encoder, steps=c.forecast_decoder_window)
+        forecast, attention = self.forecaster.predict(
+            encoder,
+            steps=min(c.forecast_decoder_window, self.forecast_steps),
+        )
         elapsed_ms = (time.perf_counter() - started) * 1000
         magnitude, distance_km = self.target_scaler.inverse(
             mag_norm.detach().cpu().numpy(), distance_norm.detach().cpu().numpy()
