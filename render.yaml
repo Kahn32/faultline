@@ -5,7 +5,6 @@ services:
     plan: free
     dockerfilePath: ./Dockerfile.api
     healthCheckPath: /health
-    maxShutdownDelaySeconds: 30
     envVars:
       - key: CORS_ORIGINS
         value: "*"
