@@ -1,0 +1,56 @@
+name: faultline
+services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile.api
+    ports: ["8000:8000"]
+    environment:
+      MODEL_ARTIFACT_DIR: /artifacts/approved
+      CORS_ORIGINS: http://localhost:3000
+      REDIS_URL: redis://redis:6379/0
+      CLICKHOUSE_HOST: clickhouse
+      CLICKHOUSE_PORT: 8123
+      CLICKHOUSE_DB: faultline
+    volumes:
+      - ./artifacts:/artifacts
+    depends_on: [redis, clickhouse]
+  frontend:
+    build: ./frontend
+    ports: ["3000:3000"]
+    environment:
+      NEXT_PUBLIC_API_URL: http://localhost:8000
+    depends_on: [api]
+  redis:
+    image: redis:7-alpine
+    ports: ["6379:6379"]
+  clickhouse:
+    image: clickhouse/clickhouse-server:25.3-alpine
+    ports: ["8123:8123"]
+    environment:
+      CLICKHOUSE_DB: faultline
+      CLICKHOUSE_USER: default
+      CLICKHOUSE_PASSWORD: ""
+  mlflow:
+    image: ghcr.io/mlflow/mlflow:v3.1.4
+    command: mlflow server --host 0.0.0.0 --port 5000
+    ports: ["5000:5000"]
+  prometheus:
+    image: prom/prometheus:v3.5.0
+    ports: ["9090:9090"]
+    volumes:
+      - ./infra/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+  triton:
+    image: ${TRITON_IMAGE:-nvcr.io/nvidia/tritonserver:26.07-py3}
+    profiles: ["nvidia"]
+    command: tritonserver --model-repository=/models --strict-model-config=false
+    ports: ["8100:8000", "8101:8001", "8102:8002"]
+    volumes:
+      - ./infra/triton/model_repository:/models:ro
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]

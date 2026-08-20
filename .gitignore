@@ -1,0 +1,12 @@
+.env
+__pycache__/
+*.pyc
+artifacts/*
+!artifacts/candidate_comparison.json
+!artifacts/approved/
+!artifacts/approved/**
+mlruns/
+mlflow.db
+frontend/
+:memory:.ses
+.DS_Store

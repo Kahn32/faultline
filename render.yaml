@@ -1,0 +1,13 @@
+services:
+  - type: web
+    name: faultline-api
+    runtime: docker
+    plan: free
+    dockerfilePath: ./Dockerfile.api
+    healthCheckPath: /health
+    maxShutdownDelaySeconds: 30
+    envVars:
+      - key: CORS_ORIGINS
+        value: "*"
+      - key: MAX_CONCURRENT_INFERENCE
+        value: "2"

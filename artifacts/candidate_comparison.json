@@ -1,0 +1,57 @@
+{
+  "gru_detector": {
+    "winner": "corrected",
+    "metrics": {
+      "notebook": {
+        "threshold": 0.5349999999999999,
+        "accuracy": 0.9716981132075472,
+        "f1": 0.9698403311649911,
+        "roc_auc": 0.9958446719711347,
+        "pr_auc": 0.9950351410071756
+      },
+      "corrected": {
+        "threshold": 0.49999999999999994,
+        "accuracy": 0.9891786903440621,
+        "f1": 0.9884238646482636,
+        "roc_auc": 0.9983458443473845,
+        "pr_auc": 0.9984642602704015
+      }
+    },
+    "validation_thresholds": {
+      "notebook": 0.5349999999999999,
+      "corrected": 0.49999999999999994
+    }
+  },
+  "lstm_estimator": {
+    "winner": "corrected",
+    "metrics": {
+      "notebook": {
+        "magnitude_mae": 0.4114397466182709,
+        "magnitude_rmse": 0.5380522012710571,
+        "distance_mae_km": 15.2708158493042,
+        "distance_rmse_km": 27.752920150756836
+      },
+      "corrected": {
+        "magnitude_mae": 0.26458731293678284,
+        "magnitude_rmse": 0.4053735136985779,
+        "distance_mae_km": 10.079389572143555,
+        "distance_rmse_km": 22.16509246826172
+      }
+    }
+  },
+  "seq2seq": {
+    "winner": "notebook",
+    "metrics": {
+      "notebook": {
+        "waveform_mse": 0.993160629272461,
+        "waveform_rmse": 0.9965744474310291,
+        "waveform_mae": 0.6272065103054046
+      },
+      "corrected": {
+        "waveform_mse": 1.0362903237342835,
+        "waveform_rmse": 1.0179834594600659,
+        "waveform_mae": 0.6361052632331848
+      }
+    }
+  }
+}

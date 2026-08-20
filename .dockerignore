@@ -1,0 +1,17 @@
+.git
+.gitignore
+.DS_Store
+.env
+**/__pycache__
+**/*.pyc
+artifacts/baselines
+artifacts/corrected
+artifacts/logs
+artifacts/smoke
+frontend
+infra
+mlflow.db
+mlruns
+notebooks
+results
+scripts

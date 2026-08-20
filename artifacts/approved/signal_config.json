@@ -1,0 +1,14 @@
+{
+  "sample_rate_hz": 100,
+  "total_samples": 6000,
+  "channels": [
+    "east_west",
+    "north_south",
+    "vertical"
+  ],
+  "detector_window": 300,
+  "estimator_window": 500,
+  "forecast_encoder_window": 300,
+  "forecast_decoder_window": 900,
+  "p_before": 50
+}
